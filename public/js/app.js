@@ -1041,7 +1041,7 @@ async function showProjectSessions(projectId) {
   try {
     const data = await api.get(`/api/sessions/for-project?projectId=${projectId}`);
     if (!data || !data.session) {
-      document.getElementById('copilot-context').innerHTML = '<div class="copilot-empty">No previous sessions found for this project</div>';
+      document.getElementById('copilot-context').innerHTML = `<div class="copilot-empty">No previous sessions found for this project<br><br><button class="btn btn-sm btn-success" onclick="_launchCopilotTerminal('${projectId}')">🤖 Start New Copilot Session</button></div>`;
       return;
     }
 

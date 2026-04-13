@@ -10,7 +10,7 @@ let pty = null;
 try { pty = require('node-pty'); } catch { console.warn('⚠ node-pty unavailable — terminals disabled'); }
 
 const Database = require('better-sqlite3');
-const SESSION_STORE = path.join(process.env.USERPROFILE || 'C:\\Users\\Chris', '.copilot', 'session-store.db');
+const SESSION_STORE = path.join(process.env.USERPROFILE || process.env.HOME || '', '.copilot', 'session-store.db');
 
 const PORT = 9900;
 const HEALTH_INTERVAL = 8000;
@@ -589,6 +589,7 @@ app.delete('/api/projects/:id', (req, res) => {
 
 // ── Session Store API ───────────────────────────────
 function withSessionDb(fn) {
+  if (!fs.existsSync(SESSION_STORE)) return null;
   let db;
   try {
     db = new Database(SESSION_STORE, { readonly: true, fileMustExist: true });
@@ -603,7 +604,7 @@ app.get('/api/sessions', (req, res) => {
       db.prepare(`SELECT id, cwd, repository, branch, summary, created_at, updated_at
                   FROM sessions ORDER BY created_at DESC LIMIT ?`).all(limit)
     );
-    res.json(rows);
+    res.json(rows || []);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -615,7 +616,7 @@ app.get('/api/sessions/search', (req, res) => {
       db.prepare(`SELECT content, session_id, source_type FROM search_index
                   WHERE search_index MATCH ? ORDER BY rank LIMIT 30`).all(q)
     );
-    res.json(rows);
+    res.json(rows || []);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
