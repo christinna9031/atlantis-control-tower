@@ -37,7 +37,10 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // ── Config ──────────────────────────────────────────
 const configPath = path.join(__dirname, '..', 'projects.json');
-function loadConfig() { return JSON.parse(fs.readFileSync(configPath, 'utf-8')); }
+function loadConfig() {
+  if (!fs.existsSync(configPath)) fs.writeFileSync(configPath, JSON.stringify({ projects: [] }, null, 2));
+  return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+}
 function saveConfig(cfg) { fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2)); }
 
 // ── State ───────────────────────────────────────────
