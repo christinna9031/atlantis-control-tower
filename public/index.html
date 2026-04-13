@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atlantis Control Tower — tilefi.sh</title>
+  <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css?v=15">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css">
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1><img src="/icons/favicon.svg" alt="" style="width:28px;height:28px;vertical-align:-6px;margin-right:8px">Atlantis Control Tower</h1>
+      <nav class="nav">
+        <button class="nav-btn active" data-view="projects" onclick="switchView('projects')">Projects</button>
+        <button class="nav-btn" data-view="sessions" onclick="switchView('sessions')">Sessions</button>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span id="summary" class="summary">Scanning...</span>
+      <button onclick="api.restartAll()" class="btn btn-warning">⟳ Restart Running</button>
+      <button onclick="api.stopAll()" class="btn btn-danger">■ Stop All</button>
+    </div>
+  </header>
+
+  <div id="view-projects">
+    <main id="projects" class="grid"></main>
+  </div>
+
+  <div id="view-sessions" style="display:none">
+    <div class="sessions-toolbar">
+      <input type="text" id="session-search" class="search-input" placeholder="Search past sessions…"
+             onkeydown="if(event.key==='Enter') sessions.search(this.value)">
+      <button class="btn btn-sm btn-accent" onclick="sessions.search(document.getElementById('session-search').value)">Search</button>
+      <button class="btn btn-sm btn-ghost" onclick="sessions.load()">Show All</button>
+    </div>
+    <div id="sessions-list" class="sessions-list"></div>
+    <div id="session-detail" class="session-detail"></div>
+  </div>
+
+  <div id="view-copilot" style="display:none">
+    <div class="copilot-view">
+      <div class="copilot-sidebar">
+        <button class="detail-back" onclick="switchView('projects')">← Projects</button>
+        <h3 id="copilot-project-name" class="copilot-title"></h3>
+        <div class="copilot-session-list" id="copilot-session-list"></div>
+      </div>
+      <div class="copilot-main">
+        <div id="copilot-context" class="copilot-context">
+          <div class="copilot-empty">Select a project to see session history</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel" class="panel">
+    <div class="panel-bar">
+      <div class="panel-tabs" id="panel-tabs"></div>
+      <div class="panel-bar-actions">
+        <button onclick="panel.toggle()" class="btn btn-sm btn-ghost" id="panel-toggle">▼</button>
+      </div>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+  </div>
+
+  <div class="toast-container" id="toasts"></div>
+  <div class="modal-container" id="modal-container" style="display:none"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

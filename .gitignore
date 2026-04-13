@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+
+# Local project data (personal project configs & icons)
+projects.json
+public/icons/*
+!public/icons/favicon.svg
+
+# Local shortcuts & launch scripts
+*.lnk
+*.bat
+*.ico

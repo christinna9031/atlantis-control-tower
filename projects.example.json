@@ -1,0 +1,22 @@
+{
+  "projects": [
+    {
+      "id": "my-app",
+      "name": "My App",
+      "icon": "📦",
+      "path": "C:\\Projects\\my-app",
+      "startCommand": "npm start",
+      "port": 3000,
+      "healthUrl": "http://localhost:3000",
+      "url": "http://localhost:3000",
+      "autoStart": false,
+      "description": "Example project — copy this file to projects.json and add your own",
+      "searchTerms": ["my app"],
+      "githubUrl": "",
+      "productionUrl": "",
+      "env": {
+        "PORT": "3000"
+      }
+    }
+  ]
+}
