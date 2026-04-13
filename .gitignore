@@ -8,5 +8,5 @@ public/icons/*
 
 # Local shortcuts & launch scripts
 *.lnk
-*.bat
 *.ico
+start-control-tower.bat
