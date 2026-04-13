@@ -1,0 +1,14 @@
+{
+  "name": "customer-dashboard",
+  "version": "1.0.0",
+  "description": "CRE Customer Dashboard — manage customers, notes, tickets, meetings, action items, and health checks",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.8.0",
+    "express": "^4.21.0"
+  }
+}
