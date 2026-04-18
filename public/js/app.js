@@ -1012,18 +1012,27 @@ function resumeSession(sessionId) {
   enableTermClipboard(xterm, id);
 
   // Unblock input once Copilot is ready or shows an interactive prompt
+  let unblockTimer = null;
   const unblockOnReady = ({ termId: tid, data: out }) => {
     if (tid !== id) return;
+    // Immediate unblock on known ready indicators
     if (out.includes('Describe a task') || out.includes('shift+tab') || out.includes('reqs.')
-        || out.includes('Session storage') || out.includes('to navigate') || out.includes('to confirm')) {
+        || out.includes('Session storage') || out.includes('to navigate') || out.includes('to confirm')
+        || out.includes('autopilot') || out.includes('commands')) {
       inputBlocked = false;
       socket.off('terminal:output', unblockOnReady);
+      if (unblockTimer) clearTimeout(unblockTimer);
+      return;
     }
+    // Fallback: unblock 3s after the last output chunk (Copilot is done loading)
+    if (unblockTimer) clearTimeout(unblockTimer);
+    unblockTimer = setTimeout(() => {
+      inputBlocked = false;
+      socket.off('terminal:output', unblockOnReady);
+    }, 3000);
   };
   socket.on('terminal:output', unblockOnReady);
   setTimeout(() => { inputBlocked = false; socket.off('terminal:output', unblockOnReady); }, 60000);
-
-  const cmd = `copilot --autopilot --resume=${sessionId}`;
   setTimeout(() => socket.emit('terminal:input', { termId: id, data: cmd + '\r' }), 1500);
   xterm.focus();
 }
@@ -1165,13 +1174,24 @@ async function _launchCopilotTerminal(projectId) {
   enableTermClipboard(xterm, id);
 
   // Unblock input once Copilot is ready or shows an interactive prompt
+  let unblockTimer = null;
   const unblockOnReady = ({ termId: tid, data: out }) => {
     if (tid !== id) return;
+    // Immediate unblock on known ready indicators
     if (out.includes('Describe a task') || out.includes('shift+tab') || out.includes('reqs.')
-        || out.includes('Session storage') || out.includes('to navigate') || out.includes('to confirm')) {
+        || out.includes('Session storage') || out.includes('to navigate') || out.includes('to confirm')
+        || out.includes('autopilot') || out.includes('commands')) {
       inputBlocked = false;
       socket.off('terminal:output', unblockOnReady);
+      if (unblockTimer) clearTimeout(unblockTimer);
+      return;
     }
+    // Fallback: unblock 3s after the last output chunk (Copilot is done loading)
+    if (unblockTimer) clearTimeout(unblockTimer);
+    unblockTimer = setTimeout(() => {
+      inputBlocked = false;
+      socket.off('terminal:output', unblockOnReady);
+    }, 3000);
   };
   socket.on('terminal:output', unblockOnReady);
   setTimeout(() => { inputBlocked = false; socket.off('terminal:output', unblockOnReady); }, 60000);
