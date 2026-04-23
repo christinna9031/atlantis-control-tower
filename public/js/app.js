@@ -15,13 +15,24 @@ socket.on('connect', () => {
 socket.on('terminal:reconnected', ({ adopted }) => {
   if (adopted.length) {
     toast(`Reconnected ${adopted.length} terminal(s)`, 'success');
-    // Re-fit active terminal
     const active = panel.tabs.find(t => t.id === panel.activeId);
     if (active?.type === 'terminal') {
       setTimeout(() => panel._fitTerminal(active.id), 100);
     }
+  } else {
+    toast('No terminals to reconnect', 'info');
   }
 });
+
+function reconnectTerminals() {
+  if (panel.termInstances.size === 0) {
+    toast('No open terminals', 'info');
+    return;
+  }
+  // Force a fresh socket reconnect
+  socket.disconnect();
+  socket.connect();
+}
 
 // ── Terminal clipboard support ───────────────────────
 function enableTermClipboard(xterm, termId) {
