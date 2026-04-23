@@ -2,6 +2,26 @@ const socket = io();
 let projects = [];
 let hasPty = false;
 let showHidden = false;
+let previousSocketId = null;
+
+// Track socket ID for reconnection
+socket.on('connect', () => {
+  if (previousSocketId && panel.termInstances.size > 0) {
+    socket.emit('terminal:reconnect', { oldSocketId: previousSocketId });
+  }
+  previousSocketId = socket.id;
+});
+
+socket.on('terminal:reconnected', ({ adopted }) => {
+  if (adopted.length) {
+    toast(`Reconnected ${adopted.length} terminal(s)`, 'success');
+    // Re-fit active terminal
+    const active = panel.tabs.find(t => t.id === panel.activeId);
+    if (active?.type === 'terminal') {
+      setTimeout(() => panel._fitTerminal(active.id), 100);
+    }
+  }
+});
 
 // ── Terminal clipboard support ───────────────────────
 function enableTermClipboard(xterm, termId) {
