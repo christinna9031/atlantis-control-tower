@@ -768,6 +768,7 @@ app.get('/api/sessions/:id', (req, res) => {
 
 // ── Socket.IO + Terminals ───────────────────────────
 const terminals = new Map();
+const disconnectTimers = new Map(); // socketId → timeout (grace period before killing terminals)
 
 io.on('connection', socket => {
   const config = loadConfig();
@@ -777,6 +778,27 @@ io.on('connection', socket => {
   }
 
   socket.emit('pty:available', !!pty);
+
+  // If client sends a reconnect claim, re-adopt orphaned terminals from the old socket
+  socket.on('terminal:reconnect', ({ oldSocketId }) => {
+    // Cancel any pending cleanup for the old socket
+    const timer = disconnectTimers.get(oldSocketId);
+    if (timer) { clearTimeout(timer); disconnectTimers.delete(oldSocketId); }
+
+    const adopted = [];
+    for (const [termId, t] of terminals) {
+      if (t.socketId === oldSocketId) {
+        t.socketId = socket.id;
+        // Re-wire output to the new socket
+        t.outputCleanup?.();
+        const handler = data => socket.emit('terminal:output', { termId, data });
+        t.pty.onData(handler);
+        t.outputCleanup = () => {};
+        adopted.push(termId);
+      }
+    }
+    socket.emit('terminal:reconnected', { adopted });
+  });
 
   socket.on('terminal:create', ({ termId, projectId }) => {
     if (!pty) return socket.emit('terminal:error', { termId, error: 'node-pty not available' });
@@ -802,7 +824,7 @@ io.on('connection', socket => {
       return;
     }
 
-    terminals.set(termId, { pty: term, socketId: socket.id });
+    terminals.set(termId, { pty: term, socketId: socket.id, outputCleanup: () => {} });
 
     term.onData(data => socket.emit('terminal:output', { termId, data }));
     term.onExit(({ exitCode }) => {
@@ -827,9 +849,15 @@ io.on('connection', socket => {
   });
 
   socket.on('disconnect', () => {
-    for (const [id, t] of terminals) {
-      if (t.socketId === socket.id) { t.pty.kill(); terminals.delete(id); }
-    }
+    // Grace period: keep terminals alive for 60s in case the client reconnects (e.g. after sleep)
+    const sid = socket.id;
+    const timer = setTimeout(() => {
+      disconnectTimers.delete(sid);
+      for (const [id, t] of terminals) {
+        if (t.socketId === sid) { t.pty.kill(); terminals.delete(id); }
+      }
+    }, 60000);
+    disconnectTimers.set(sid, timer);
   });
 });
 
